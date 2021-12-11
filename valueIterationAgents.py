@@ -66,7 +66,6 @@ class ValueIterationAgent(ValueEstimationAgent):
         Vk(s) = max[a] Qk(s,a)
         Qk+1(s,a) = E [s'] (T(r,a,s')*(R(s,a,s')+ y*Vk(s')))
         """
-        iterationCounter = 0
         states = self.mdp.getStates()
 
         for i in range(self.iterations):
@@ -74,25 +73,17 @@ class ValueIterationAgent(ValueEstimationAgent):
             for state in states:
 
                 actions = self.mdp.getPossibleActions(state)
-                max = float('-9999')
+                qValuesForState = list()
                 for action in actions:
                     qNext = 0
                     for nextState, prob in self.mdp.getTransitionStatesAndProbs(state,action):
                         qNext += prob*(self.mdp.getReward(state,action,nextState)+ self.discount*(self.values[nextState]))
-                    if qNext > max:
-                        max = qNext
-                        nextValues[state] = max
-                    print(state,action,qNext,max)
+                    qValuesForState.append(qNext)
+                    nextValues[state] = max(qValuesForState)
 
-                
             self.values= nextValues
-            #self.values = nextValues
        
-            
-
-
-
-
+        
     def getValue(self, state):
         """
           Return the value of the state (computed in __init__).

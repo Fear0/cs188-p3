@@ -164,6 +164,19 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        states = self.mdp.getStates()
+        index = 0
+        numStates = len(states)
+        for _ in range(self.iterations):
+            if index == numStates:
+                index = 0
+            currState = states[index]
+            if not self.mdp.isTerminal(currState):
+                action = self.computeActionFromValues(currState)
+                self.values[currState] = self.computeQValueFromValues(currState, action)
+            
+            index+=1
+            
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     """
@@ -184,4 +197,42 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        predecessors = dict()
+        states = self.mdp.getStates()
+        for state in states:
+            predecessors.setdefault(state,set())
+        #print('Predecessors: ',predecessors)
+    
+        for item in predecessors:
+            for state in states:
+                for action in self.mdp.getPossibleActions(state):
+                    for nextState , _ in self.mdp.getTransitionStatesAndProbs(state,action):
+                        if nextState == item:
+                            predecessors[item].add(state)
+        
+        
+
+        priorityQueue = util.PriorityQueue()
+        for state in self.mdp.getStates():
+            if not self.mdp.isTerminal(state):
+                action = self.computeActionFromValues(state)
+                qValue = self.computeQValueFromValues(state,action)
+                diff = abs(self.values[state]-qValue)
+                priorityQueue.update(state,-diff)
+        
+        for _ in range(self.iterations):
+            if priorityQueue.isEmpty():
+                return
+            
+            currState = priorityQueue.pop()
+            if not self.mdp.isTerminal(currState):
+                action = self.computeActionFromValues(currState)
+                qValue = self.computeQValueFromValues(currState,action)
+                self.values[currState] = qValue
+            for predecessor in predecessors[currState]:
+                action = self.computeActionFromValues(predecessor)
+                qValue = self.computeQValueFromValues(predecessor,action)
+                diff = abs(self.values[predecessor]-qValue)
+                if diff > self.theta:
+                    priorityQueue.update(predecessor,-diff)
 

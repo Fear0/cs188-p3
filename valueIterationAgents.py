@@ -201,7 +201,6 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         states = self.mdp.getStates()
         for state in states:
             predecessors.setdefault(state,set())
-        #print('Predecessors: ',predecessors)
     
         for item in predecessors:
             for state in states:
